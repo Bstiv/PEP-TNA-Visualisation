@@ -2347,14 +2347,17 @@ df_counts <- df_long %>%
 # Define the new disease/competency labels
 
 new_labels <- c(
-  "" = "",
-  "" = "",
-  "" = "",
-  "" = "",
-  "" = "",
-  "" = "",
-  "" = "",
-  "" = ""
+  "Apply_diet_planning_in_managin...544" = "Diet planning in managing CMDs",
+  "Apply_diet_therapy_in_managing...545" = "Diet therapy in managing CMDs",
+  "Assess_the_following_CMDs_indi...546" = "Asses CMDs indicators",
+  "Conduct_follow_up_on_CMD_clien...547" = "Follow up on CMD patients",
+  "Develop_relevant_interventions...548" = "Develop relevant CMDs intervention",
+  "Diagnose_CMDs_correctly" = "Diagnose CMDs correctly",
+  "Provide_nutritional_education" = "Provide nutritional education",
+  "Refer_CMD_clients_to_health_fa...551" = "Refer CMD patients to facilities",
+  "Screen_for_CMDs_in_the_communi...552" = "Screen for CMDs in communities",
+  "Use_special_diet_in_managing_C...553" = "Special diet in managing CMDs",
+  "Use_special_feeding_methods_in...554" = "Special feeding methods in manag. CMDs"
 )
 
 # Create the stacked bar chart with percentages inside bars
@@ -2371,6 +2374,69 @@ ggplot(df_counts, aes(y = Disease, x = Percentage, fill = Opinion)) +
   theme_minimal() +
   theme(axis.text.y = element_text(size = 10))  # Adjust text size for readability
 
+# Pharmacy Outcome
+colnames(Cadre_Specific_Data_Modified)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+selected_diseases <- c("Explain_optimal_pharmaceutical...580", "Interpret_drug_prescriptions_r...581", "Explain_rationale_use_of_CMD_m", 
+                       "Demonstrate_understanding_of_p...583", "Educate_clients/patients_on_CM...584", "Provide_information_on_adverse...585", 
+                       "Explain_appropriate_storage_re", "Demonstrate_understanding_of_c...587", "Identify_contraindications", 
+                       "Pharmacovigilance_(report_ADRs") 
+
+# Filter the data set to include only selected diseases
+df_selected <- Cadre_Specific_Data_Modified %>% select(all_of(selected_diseases))
+
+# Convert data to long format and ensure NA values are dropped
+df_long <- df_selected %>%
+  pivot_longer(cols = everything(), names_to = "Disease", values_to = "Opinion") %>%
+  drop_na(Opinion)  # Ensure NA values are fully removed
+
+# Convert numeric values to factor levels with labels, ensuring no NA
+
+df_long <- df_long %>%
+  mutate(Opinion = factor(Opinion, 
+                          levels = c(0, 1, 2, 3, 4), 
+                          labels = c("Not at all", "Slightly", "Moderately", "Good", "Very Good")))
+
+
+# Compute counts and percentages for each category per disease
+df_counts <- df_long %>%
+  group_by(Disease, Opinion) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  complete(Disease, Opinion, fill = list(Count = 0)) %>%  # Ensure all five levels appear
+  filter(!is.na(Opinion)) %>%  # Remove any NA entries introduced by complete()
+  group_by(Disease) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+# Define the new disease/competency labels
+
+new_labels <- c(
+  "Explain_optimal_pharmaceutical...580" = "Explain pharmaceutical care & safety",
+  "Interpret_drug_prescriptions_r...581" = "Interprete drug prescriptions",
+  "Explain_rationale_use_of_CMD_m" = "Rationale use of CMD medicine",
+  "Demonstrate_understanding_of_p...583" = "Understanding of professional ethics",
+  "Educate_clients/patients_on_CM...584" = "Educate patients on CMD medicine",
+  "Provide_information_on_adverse...585" = "Information on adverse drug reactions",
+  "Explain_appropriate_storage_re" = "Appropriate storage requirements",
+  "Demonstrate_understanding_of_c...587" = "Understanding of inventory components",
+  "Identify_contraindications" = "Identify contraindications",
+  "Pharmacovigilance_(report_ADRs" = "Pharmacovigilance"
+)
+
+# Create the stacked bar chart with percentages inside bars
+ggplot(df_counts, aes(y = Disease, x = Percentage, fill = Opinion)) +
+  geom_col(position = "fill", width = 0.7) +  # Stacked bars
+  geom_text(aes(label = ifelse(Percentage > 0, paste0(round(Percentage, 1), "%"), "")),  # Hide 0% labels for clarity
+            position = position_fill(vjust = 0.5), size = 3, color = "black") +  # Font size = 3
+  labs(
+    x = "Proportion",
+    y = "Competency",
+    fill = "Expertise Level") +
+  scale_fill_brewer(palette = "Set2") +  # Adjust color scheme for better contrast
+  scale_y_discrete(labels = new_labels) +  # ✅ Apply correct labels
+  theme_minimal() +
+  theme(axis.text.y = element_text(size = 10))  # Adjust text size for readability
 
 
 
